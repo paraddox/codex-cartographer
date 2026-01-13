@@ -6,10 +6,10 @@
     "name": "Bootoshi",
     "url": "https://github.com/bootoshi"
   },
-  "homepage": "https://github.com/bootoshi/cartographer",
+  "homepage": "https://github.com/kingbootoshi/cartographer",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bootoshi/cartographer.git"
+    "url": "https://github.com/kingbootoshi/cartographer.git"
   },
   "license": "MIT",
   "keywords": [
