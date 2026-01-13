@@ -11,7 +11,7 @@
   "plugins": [
     {
       "name": "cartographer",
-      "source": "./",
+      "source": "./plugins/cartographer",
       "description": "Maps and documents codebases of any size by orchestrating parallel subagents. Creates docs/CODEBASE_MAP.md with architecture, file purposes, dependencies, and navigation guides.",
       "version": "1.0.0",
       "category": "developer tools",
