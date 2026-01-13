@@ -1,25 +1,63 @@
-# Cartographer Marketplace
+# Cartographer
 
-A Claude Code plugin marketplace containing the Cartographer codebase mapping tool.
+A Claude Code plugin that maps and documents codebases of any size using parallel AI subagents.
 
 ## Installation
 
-Add this marketplace to Claude Code:
+**Step 1:** Add the marketplace to Claude Code:
 
 ```
 /plugin marketplace add kingbootoshi/cartographer
 ```
 
-Then install the plugin:
+**Step 2:** Install the plugin:
 
 ```
 /plugin install cartographer
 ```
 
-## What's Included
+**Step 3:** Restart Claude Code (may be required for the skill to load)
 
-### cartographer
+**Step 4:** Use it:
 
-Maps and documents codebases of any size using parallel AI subagents with 1M token context windows.
+```
+/cartographer
+```
 
-See [plugins/cartographer/README.md](plugins/cartographer/README.md) for full documentation.
+Or just say "map this codebase" and it will trigger automatically.
+
+## What it Does
+
+Cartographer orchestrates multiple Sonnet subagents (with 1M token context windows) to analyze your entire codebase in parallel, then synthesizes their findings into:
+
+- `docs/CODEBASE_MAP.md` - Detailed architecture map with file purposes, dependencies, data flows, and navigation guides
+- Updates `CLAUDE.md` with a summary pointing to the map
+
+## How it Works
+
+1. Runs a scanner script to get file tree with token counts (respects .gitignore)
+2. Plans how to split work across subagents based on token budgets
+3. Spawns Sonnet subagents in parallel - each analyzes a portion of the codebase
+4. Synthesizes all subagent reports into comprehensive documentation
+
+## Update Mode
+
+If `docs/CODEBASE_MAP.md` already exists, Cartographer will:
+
+1. Check git history for changes since last mapping
+2. Only re-analyze changed modules
+3. Merge updates with existing documentation
+
+Just run `/cartographer` again to update.
+
+## Requirements
+
+- tiktoken (for token counting): `pip install tiktoken` or `uv pip install tiktoken`
+
+## Full Documentation
+
+See [plugins/cartographer/README.md](plugins/cartographer/README.md) for detailed documentation.
+
+## License
+
+MIT
