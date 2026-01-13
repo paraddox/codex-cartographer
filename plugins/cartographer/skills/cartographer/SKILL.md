@@ -33,20 +33,32 @@ First, check if `docs/CODEBASE_MAP.md` already exists:
 
 ### Step 2: Scan the Codebase
 
-Run the scanner script to get an overview. Use the `${CLAUDE_PLUGIN_ROOT}` variable to reference the script:
+Run the scanner script to get an overview. Try these in order until one works:
 
 ```bash
+# Option 1: If uv is available (preferred)
+uv run ${CLAUDE_PLUGIN_ROOT}/skills/cartographer/scripts/scan-codebase.py . --format json
+
+# Option 2: Direct execution (uses shebang)
+${CLAUDE_PLUGIN_ROOT}/skills/cartographer/scripts/scan-codebase.py . --format json
+
+# Option 3: Explicit python3
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/cartographer/scripts/scan-codebase.py . --format json
+
+# Option 4: Explicit python (some systems)
+python ${CLAUDE_PLUGIN_ROOT}/skills/cartographer/scripts/scan-codebase.py . --format json
 ```
 
-If tiktoken is not installed, install it first:
+If tiktoken is missing, install it:
 ```bash
-pip install tiktoken
-# or with uv:
+# With uv (if available)
 uv pip install tiktoken
-```
 
-Then run the scanner.
+# Or standard pip
+pip install tiktoken
+# or
+pip3 install tiktoken
+```
 
 The output provides:
 - Complete file tree with token counts per file
@@ -226,9 +238,14 @@ Always use Sonnet subagents for maximum file coverage.
 **Scanner fails with tiktoken error:**
 ```bash
 pip install tiktoken
+# or
+pip3 install tiktoken
 # or with uv:
 uv pip install tiktoken
 ```
+
+**Python not found:**
+Try `python3`, `python`, or use `uv run` which handles Python automatically.
 
 **Codebase too large even for subagents:**
 - Increase number of subagents
