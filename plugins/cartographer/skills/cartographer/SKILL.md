@@ -7,6 +7,8 @@ description: Maps and documents codebases of any size by orchestrating parallel 
 
 Maps codebases of any size using parallel Sonnet subagents with 1M token context windows.
 
+**CRITICAL: Opus orchestrates, Sonnet reads.** Never have Opus read codebase files directly. Always delegate file reading to Sonnet subagents - even for small codebases. Opus plans the work, spawns subagents, and synthesizes their reports.
+
 ## Quick Start
 
 1. Run the scanner script to get file tree with token counts
@@ -76,7 +78,7 @@ Analyze the scan output to divide work among subagents:
 2. Balance token counts across groups
 3. Aim for 3-8 subagents depending on codebase size
 
-**For small codebases (<100k tokens):** Skip subagents, analyze directly.
+**For small codebases (<100k tokens):** Still use a single Sonnet subagent. Opus orchestrates, Sonnet reads - never have Opus read the codebase directly.
 
 **Example assignment:**
 
@@ -154,7 +156,28 @@ total_tokens: N
 
 ## System Overview
 
-[ASCII diagram showing high-level architecture]
+[Mermaid diagram showing high-level architecture]
+
+```mermaid
+graph TB
+    subgraph Client
+        Web[Web App]
+    end
+    subgraph API
+        Server[API Server]
+        Auth[Auth Middleware]
+    end
+    subgraph Data
+        DB[(Database)]
+        Cache[(Cache)]
+    end
+    Web --> Server
+    Server --> Auth
+    Server --> DB
+    Server --> Cache
+```
+
+[Adapt the above to match the actual architecture]
 
 ## Directory Structure
 
@@ -178,7 +201,24 @@ total_tokens: N
 
 ## Data Flow
 
-[Key flows like auth, API requests, etc.]
+[Mermaid sequence diagrams for key flows]
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Web
+    participant API
+    participant DB
+
+    User->>Web: Action
+    Web->>API: Request
+    API->>DB: Query
+    DB-->>API: Result
+    API-->>Web: Response
+    Web-->>User: Update UI
+```
+
+[Create diagrams for: auth flow, main data operations, etc.]
 
 ## Conventions
 
