@@ -1,72 +1,50 @@
-# Cartographer
+# Codex Cartographer
 
-<img width="640" height="360" alt="claudecartographer" src="https://github.com/user-attachments/assets/542818c6-fc2b-41a6-915d-cf196447f346" />
+<img width="640" height="360" alt="codex-cartographer" src="https://github.com/user-attachments/assets/542818c6-fc2b-41a6-915d-cf196447f346" />
 
+A Codex skill that maps and documents codebases of any size using parallel subagents.
 
-A Claude Code plugin that maps and documents codebases of any size using parallel AI subagents.
+## Repository Layout
+
+- `skills/cartographer/SKILL.md`
+- `skills/cartographer/scripts/scan-codebase.py`
 
 ## Installation
 
-**Step 1:** Add the marketplace to Claude Code:
+Install by copying the `skills` folder into your user-level Codex skills directory:
 
-```
-/plugin marketplace add kingbootoshi/cartographer
-```
-
-**Step 2:** Install the plugin:
-
-```
-/plugin install cartographer
+```bash
+mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
+rsync -a skills/ "${CODEX_HOME:-$HOME/.codex}/skills/"
 ```
 
-**Step 3:** Restart Claude Code (may be required for the skill to load)
+## Usage
 
-**Step 4:** Use it:
+In Codex, ask:
 
-```
-/cartographer
-```
+- `map this codebase`
+- `cartographer`
+- `create codebase map`
 
-Or just say "map this codebase" and it will trigger automatically.
+## What It Does
 
-## What it Does
+Cartographer analyzes your codebase in parallel and synthesizes results into:
 
-Cartographer orchestrates multiple Sonnet subagents to analyze your entire codebase in parallel, then synthesizes their findings into:
+- `docs/CODEBASE_MAP.md` with architecture, module purposes, dependencies, and navigation guides
+- `AGENTS.md` summary updates (and `CLAUDE.md` if present)
 
-- `docs/CODEBASE_MAP.md` - Detailed architecture map with file purposes, dependencies, data flows, and navigation guides
-- Updates `CLAUDE.md` with a summary pointing to the map
+## How It Works
 
-## How it Works
-
-1. Runs a scanner script to get file tree with token counts (respects .gitignore)
-2. Plans how to split work across subagents based on token budgets
-3. Spawns Sonnet subagents in parallel - each analyzes a portion of the codebase
-4. Synthesizes all subagent reports into comprehensive documentation
-
-## Update Mode
-
-If `docs/CODEBASE_MAP.md` already exists, Cartographer will:
-
-1. Check git history for changes since last mapping
-2. Only re-analyze changed modules
-3. Merge updates with existing documentation
-
-Just run `/cartographer` again to update.
-
-## Token Usage
-
-⚠️ **NOTE:** This skill spawns Sonnet subagents for accurate, reliable analysis. Depending on codebase size, this can use significant tokens. Be mindful of your usage.
-
-You can ask Claude to use Haiku subagents instead for a cheaper run, but accuracy may suffer on complex codebases.
+1. Scans the repository and estimates token counts per file.
+2. Splits files into balanced analysis groups.
+3. Spawns parallel `gpt-5.3-codex-spark` subagents to analyze file groups.
+4. Synthesizes subagent outputs into a single map document.
 
 ## Requirements
 
-- tiktoken (for token counting): `pip install tiktoken` or `uv pip install tiktoken`
+- Python 3.9+
+- `tiktoken` (installed automatically when using `uv run`, or manually via `pip install tiktoken`)
 
-## Full Documentation
+## Skill Details
 
-See [plugins/cartographer/README.md](plugins/cartographer/README.md) for detailed documentation.
-
-## License
-
-MIT
+See `skills/cartographer/SKILL.md` for the full workflow and operational details.

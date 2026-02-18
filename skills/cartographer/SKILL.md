@@ -1,21 +1,21 @@
 ---
 name: cartographer
-description: Maps and documents codebases of any size by orchestrating parallel subagents. Creates docs/CODEBASE_MAP.md with architecture, file purposes, dependencies, and navigation guides. Updates CLAUDE.md with a summary. Use when user says "map this codebase", "cartographer", "/cartographer", "create codebase map", "document the architecture", "understand this codebase", or when onboarding to a new project. Automatically detects if map exists and updates only changed sections.
+description: Maps and documents codebases of any size by orchestrating parallel subagents. Creates docs/CODEBASE_MAP.md with architecture, file purposes, dependencies, and navigation guides. Updates AGENTS.md (and CLAUDE.md if present) with a summary. Use when user says "map this codebase", "cartographer", "/cartographer", "create codebase map", "document the architecture", "understand this codebase", or when onboarding to a new project. Automatically detects if map exists and updates only changed sections.
 ---
 
 # Cartographer
 
-Maps codebases of any size using parallel Sonnet subagents.
+Maps codebases of any size using parallel Codex subagents.
 
-**CRITICAL: Opus orchestrates, Sonnet reads.** Never have Opus read codebase files directly. Always delegate file reading to Sonnet subagents - even for small codebases. Opus plans the work, spawns subagents, and synthesizes their reports.
+**CRITICAL: The main Codex agent orchestrates, subagents read.** Keep heavy file reading in subagents, including small repos. The main agent plans the work, spawns subagents, and synthesizes reports.
 
 ## Quick Start
 
 1. Run the scanner script to get file tree with token counts
 2. Analyze the scan output to plan subagent work assignments
-3. Spawn Sonnet subagents in parallel to read and analyze file groups
+3. Spawn `gpt-5.3-codex-spark` subagents in parallel to read and analyze file groups
 4. Synthesize subagent reports into `docs/CODEBASE_MAP.md`
-5. Update `CLAUDE.md` with summary pointing to the map
+5. Update `AGENTS.md` (and `CLAUDE.md` if present) with summary pointing to the map
 
 ## Workflow
 
@@ -39,13 +39,14 @@ Run the scanner script to get an overview. Try these in order until one works:
 
 ```bash
 # Option 1: UV (preferred - auto-installs tiktoken in isolated env)
-uv run ${CLAUDE_PLUGIN_ROOT}/skills/cartographer/scripts/scan-codebase.py . --format json
+SKILL_ROOT="${CODEX_HOME:-$HOME/.codex}/skills/cartographer"
+uv run "${SKILL_ROOT}/scripts/scan-codebase.py" . --format json
 
 # Option 2: Direct execution (requires tiktoken installed)
-${CLAUDE_PLUGIN_ROOT}/skills/cartographer/scripts/scan-codebase.py . --format json
+"${SKILL_ROOT}/scripts/scan-codebase.py" . --format json
 
 # Option 3: Explicit python3
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/cartographer/scripts/scan-codebase.py . --format json
+python3 "${SKILL_ROOT}/scripts/scan-codebase.py" . --format json
 ```
 
 **Note:** The script uses UV inline script dependencies. When run with `uv run`, tiktoken is automatically installed in an isolated environment - no global pip install needed.
@@ -66,29 +67,31 @@ The output provides:
 
 Analyze the scan output to divide work among subagents:
 
-**Token budget per subagent:** ~150,000 tokens (safe margin under Sonnet's 200k context limit)
+**Token budget per subagent:** ~100,000 tokens (conservative default for reliable analysis)
 
 **Grouping strategy:**
 1. Group files by directory/module (keeps related code together)
 2. Balance token counts across groups
-3. Aim for more subagents with smaller chunks (150k max each)
+3. Aim for more subagents with smaller chunks (100k max each)
 
-**For small codebases (<100k tokens):** Still use a single Sonnet subagent. Opus orchestrates, Sonnet reads - never have Opus read the codebase directly.
+**For small codebases (<100k tokens):** Still use a single `gpt-5.3-codex-spark` subagent. Keep heavy reading in the subagent and keep the main agent focused on orchestration/synthesis.
 
 **Example assignment:**
 
 ```
-Subagent 1: src/api/, src/middleware/ (~120k tokens)
-Subagent 2: src/components/, src/hooks/ (~140k tokens)
-Subagent 3: src/lib/, src/utils/ (~100k tokens)
-Subagent 4: tests/, docs/ (~80k tokens)
+Subagent 1: src/api/, src/middleware/ (~90k tokens)
+Subagent 2: src/components/, src/hooks/ (~95k tokens)
+Subagent 3: src/lib/, src/utils/ (~85k tokens)
+Subagent 4: tests/, docs/ (~60k tokens)
 ```
 
-### Step 4: Spawn Sonnet Subagents in Parallel
+### Step 4: Spawn Codex Subagents in Parallel
 
-Use the Task tool with `subagent_type: "Explore"` and `model: "sonnet"` for each group.
+Use `spawn_agent` for each group with:
+- `agent_type: "explorer"`
+- model `gpt-5.3-codex-spark` when model routing is available in your runtime
 
-**CRITICAL: Spawn all subagents in a SINGLE message with multiple Task tool calls.**
+**CRITICAL: Spawn all subagents in a single batch (parallel) before waiting, instead of sequentially.**
 
 Each subagent prompt should:
 1. List the specific files/directories to read
@@ -240,9 +243,9 @@ sequenceDiagram
 [etc.]
 ```
 
-### Step 7: Update CLAUDE.md
+### Step 7: Update AGENTS.md (and CLAUDE.md if present)
 
-Add or update the codebase summary in CLAUDE.md:
+Add or update the codebase summary in `AGENTS.md`. If `CLAUDE.md` exists, mirror the same section there for compatibility:
 
 ```markdown
 ## Codebase Overview
@@ -255,7 +258,7 @@ Add or update the codebase summary in CLAUDE.md:
 For detailed architecture, see [docs/CODEBASE_MAP.md](docs/CODEBASE_MAP.md).
 ```
 
-If `AGENTS.md` exists, update it similarly.
+If only one of these files exists, update that file.
 
 ### Step 8: Completion Message
 
@@ -277,13 +280,12 @@ When updating an existing map:
 
 ## Token Budget Reference
 
-| Model | Context Window | Safe Budget per Subagent |
-|-------|---------------|-------------------------|
-| Sonnet | 200,000 | 150,000 |
-| Opus | 200,000 | 100,000 |
-| Haiku | 200,000 | 100,000 |
+| Model | Safe Budget per Subagent |
+|-------|-------------------------|
+| gpt-5.3-codex-spark | 100,000 |
+| Main orchestrator agent | Keep synthesis-only, avoid heavy file reads |
 
-Always use Sonnet subagents - best balance of capability and cost for file analysis.
+Always use `gpt-5.3-codex-spark` subagents for file analysis.
 
 ## Troubleshooting
 

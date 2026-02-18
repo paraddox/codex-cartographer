@@ -6,7 +6,7 @@
 """
 Codebase Scanner for Cartographer
 Scans a directory tree, respects .gitignore, and outputs file paths with token counts.
-Uses tiktoken for accurate Claude-compatible token estimation.
+Uses tiktoken for accurate OpenAI-compatible token estimation.
 
 Run with: uv run scan-codebase.py [path]
 UV will automatically install tiktoken in an isolated environment.
